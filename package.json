@@ -11,7 +11,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "xstate": "^5.19.2"
   },
   "devDependencies": {
     "html-webpack-plugin": "^5.6.3",
