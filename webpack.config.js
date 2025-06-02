@@ -3,7 +3,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 export default function webpack_config(env) {
   return {
-    entry: './src/main.js',
+    entry: './src/component-app.js',
     mode: (env.production ? 'production' : 'development'),
     output: {
       clean: true,

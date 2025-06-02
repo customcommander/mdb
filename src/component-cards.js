@@ -1,0 +1,130 @@
+import {LitElement, css, html} from 'lit';
+import {repeat} from 'lit/directives/repeat.js';
+import {styleMap} from 'lit/directives/style-map.js';
+import {debounceTime, fromEvent, map} from 'rxjs';
+
+import './component-card.js';
+
+class Cards extends LitElement {
+  static styles = css`
+    :host {
+      display: block;
+      position: relative;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    #spacer {
+      position: relative;
+    }
+
+    mdb-card {
+      position: absolute;
+      border: 1px solid black;
+      box-sizing: border-box;
+    }
+  `;
+  
+  static properties = {
+    items: {
+      attribute: false,
+    },
+    _cols: {
+      state: true
+    },
+    _rows: {
+      state: true
+    },
+    _slice: {
+      state: true
+    }
+  };
+
+  constructor() {
+    super();
+    this.items = [];
+    this._cols = 3;
+    this._rows = 2;
+    this._slice = [];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    this.scroll$ = fromEvent(this, 'scrollend').pipe(
+      debounceTime(100),
+      map(() => this.scrollTop),
+    );
+
+    this.scroll$.subscribe(pos => {
+      this._computeSlice(pos);
+    });
+  }
+
+  _computeSlice(pos) {
+    const {width, height} = this.getBoundingClientRect();
+    const area = this._cols * this._rows;
+    const page = Math.floor(pos / height);
+
+    // TODO: compute isLastPage?
+    const isFirstPage = page === 0;
+
+    let slice;
+
+    if (isFirstPage) {
+      slice = this.items.slice(0, area * 3);
+    } else {
+      // always provide content before and after current page for a smoother experience
+      slice = this.items.slice((page - 1) * area, (page + 3) * area);
+    }
+
+    const cardw = width / this._cols;
+    const cardh = height / this._rows;
+
+    this._slice = slice.map((item, index) => [
+      item,
+      (Math.max(0, page - 1) * height) + (Math.floor(index / this._cols) * cardh),
+      (index % this._cols) * cardw,
+      cardw,
+      cardh
+    ]);
+    console.log(this._slice);
+  }
+
+  render() {
+    if (this.items.length == 0) {
+      return;
+    }
+
+    const {height} = this.getBoundingClientRect();
+    const area = this._cols * this._rows;
+
+    const spacer = {
+      height: `${Math.ceil(this.items.length / area) * height}px`
+    };
+
+    return html`
+      <div id="spacer" style=${styleMap(spacer)}>
+      ${repeat(this._slice, ([item]) => item.id,
+        ([item, top, left, width, height]) => {
+          const card = {
+            top: `${top}px`,
+            left: `${left}px`,
+            width: `${width}px`,
+            height: `${height}px`
+          };
+
+          return html`
+            <mdb-card image=${item.image}
+                      style=${styleMap(card)}></mdb-card>
+          `;
+        }
+      )}
+      </div>
+    `;
+  }
+}
+
+customElements.define('mdb-cards', Cards);
+
+ 
