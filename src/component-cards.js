@@ -51,14 +51,40 @@ class Cards extends LitElement {
   connectedCallback() {
     super.connectedCallback();
 
-    this.scroll$ = fromEvent(this, 'scrollend').pipe(
-      debounceTime(100),
-      map(() => this.scrollTop),
+    this._resize = (
+      fromEvent(window, 'resize')
+        .pipe(
+          debounceTime(100),
+          map(() => this.getBoundingClientRect())
+        )
+        .subscribe(({width, height}) => {
+          this._cols = Math.min(4, Math.ceil(width / 250));
+          this._rows = Math.max(1, Math.ceil(height / 400));
+          this._computeSlice(this.scrollTop);
+        })
     );
+   
+    this._scroll = (
+      fromEvent(this, 'scrollend')
+        .pipe(
+          debounceTime(100),
+          map(() => this.scrollTop)
+        )
+        .subscribe((pos) => {
+          this._computeSlice(pos);
+        })
+    );
+  }
 
-    this.scroll$.subscribe(pos => {
-      this._computeSlice(pos);
-    });
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._resize.unsubscribe();
+    this._scroll.unsubscribe();
+  }
+
+  _computeArea(width, height) {
+    if (width < 300) this._cols = 1;
+    if (height < 500) this._rows = 1;
   }
 
   _computeSlice(pos) {
@@ -88,7 +114,6 @@ class Cards extends LitElement {
       cardw,
       cardh
     ]);
-    console.log(this._slice);
   }
 
   render() {
