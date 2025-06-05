@@ -110,8 +110,9 @@ class Cards extends LitElement {
             };
 
             return html`
-              <mdb-card image=${this.items[index].image}
-                        style=${styleMap(card)}></mdb-card>
+              <mdb-card style=${styleMap(card)}>
+                <img src=${this.items[index].image} />
+              </mdb-card>
             `;
           }
         )}

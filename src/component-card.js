@@ -5,27 +5,20 @@ class Card extends LitElement {
     :host {
       display: block;
     }
-    img {
+
+    ::slotted(img) {
       object-fit: contain;
       width: 100%;
       height: 100%;
     }
   `;
 
-  static properties = {
-    image: {
-      type: String
-    }
-  };
-
   constructor() {
     super();
   }
 
   render() {
-    return html`
-      <img src=${this.image} />
-    `;
+    return html`<slot></slot>`;
   }
 }
 
