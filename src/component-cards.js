@@ -91,7 +91,7 @@ class Cards extends LitElement {
     const {cols, area, cardw, cardh} = this._dimensions();
     const page = this._page;
 
-    const max = Math.min(this.items.length, (page ? page + 2 : 3) * area);
+    const max = Math.min(this.items.length, (page + 3) * area);
 
     for (let i = Math.max(0, page - 1) * area; i < max; i++) {
       const top = Math.floor(i / cols) * cardh;
