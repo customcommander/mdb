@@ -21,8 +21,6 @@ class Cards extends LitElement {
 
     mdb-card {
       position: absolute;
-      border: 1px solid black;
-      box-sizing: border-box;
     }
   `;
   
@@ -58,7 +56,7 @@ class Cards extends LitElement {
     );
 
     const combined$ = combineLatest([resize$, scroll$]).pipe(
-      debounceTime(100),
+      debounceTime(50),
       map(() => {
         const {width, height} = this.getBoundingClientRect();
         const pos = this.scrollTop;
@@ -79,10 +77,10 @@ class Cards extends LitElement {
   }
 
   _dimensions() {
-    const minw = 400;
-    const minh = 250;
-    const cols = Math.ceil(this._width / minw);
-    const rows = Math.ceil(this._height / minh);
+    const minw = 200;
+    const minh = 350;
+    const cols = Math.floor(this._width / minw);
+    const rows = Math.floor(this._height / minh);
     const area = cols * rows;
     const cardw = this._width / cols;
     const cardh = this._height / rows;
