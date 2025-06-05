@@ -75,12 +75,13 @@ class App extends LitElement {
     });
 
     this.e.start();
-    
   }
 
   render() {
     return html`
-      <mdb-cards .items=${this.items}></mdb-cards>
+      <mdb-cards .items=${this.items}>
+        <p>no results for <mark>foo</mark></p>
+      </mdb-cards>
     `;
   }
 }

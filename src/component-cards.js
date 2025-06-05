@@ -1,7 +1,7 @@
 import {LitElement, css, html} from 'lit';
 import {repeat} from 'lit/directives/repeat.js';
 import {styleMap} from 'lit/directives/style-map.js';
-import {debounceTime, fromEvent, map} from 'rxjs';
+import {combineLatest, debounceTime, fromEvent, map, startWith} from 'rxjs';
 
 import './component-card.js';
 
@@ -10,6 +10,7 @@ class Cards extends LitElement {
     :host {
       display: block;
       position: relative;
+      width: 100%;
       height: 100%;
       overflow-y: auto;
     }
@@ -29,122 +30,106 @@ class Cards extends LitElement {
     items: {
       attribute: false,
     },
-    _cols: {
+    _width: {
       state: true
     },
-    _rows: {
+    _height: {
       state: true
     },
-    _slice: {
+    _page: {
       state: true
-    }
+    },
   };
 
   constructor() {
     super();
     this.items = [];
-    this._cols = 3;
-    this._rows = 2;
-    this._slice = [];
   }
 
   connectedCallback() {
     super.connectedCallback();
 
-    this._resize = (
-      fromEvent(window, 'resize')
-        .pipe(
-          debounceTime(100),
-          map(() => this.getBoundingClientRect())
-        )
-        .subscribe(({width, height}) => {
-          this._cols = Math.min(4, Math.ceil(width / 250));
-          this._rows = Math.max(1, Math.ceil(height / 400));
-          this._computeSlice(this.scrollTop);
-        })
+    const resize$ = fromEvent(window, 'resize').pipe(
+      startWith(1)
     );
-   
-    this._scroll = (
-      fromEvent(this, 'scrollend')
-        .pipe(
-          debounceTime(100),
-          map(() => this.scrollTop)
-        )
-        .subscribe((pos) => {
-          this._computeSlice(pos);
-        })
+
+    const scroll$ = fromEvent(this, 'scrollend').pipe(
+      startWith(1)
     );
+
+    const combined$ = combineLatest([resize$, scroll$]).pipe(
+      debounceTime(100),
+      map(() => {
+        const {width, height} = this.getBoundingClientRect();
+        const pos = this.scrollTop;
+        return [width, height, pos];
+      })
+    );
+
+    this._listen = combined$.subscribe(([width, height, pos]) => {
+      this._width = width;
+      this._height = height;
+      this._page = Math.floor(pos / height);
+    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._resize.unsubscribe();
-    this._scroll.unsubscribe();
+    this._listen.unsubscribe();
   }
 
-  _computeArea(width, height) {
-    if (width < 300) this._cols = 1;
-    if (height < 500) this._rows = 1;
+  _dimensions() {
+    const minw = 400;
+    const minh = 250;
+    const cols = Math.ceil(this._width / minw);
+    const rows = Math.ceil(this._height / minh);
+    const area = cols * rows;
+    const cardw = this._width / cols;
+    const cardh = this._height / rows;
+    return {cols, rows, area, cardw, cardh};
   }
 
-  _computeSlice(pos) {
-    const {width, height} = this.getBoundingClientRect();
-    const area = this._cols * this._rows;
-    const page = Math.floor(pos / height);
+  *slice() {
+    const {cols, area, cardw, cardh} = this._dimensions();
+    const page = this._page;
 
-    // TODO: compute isLastPage?
-    const isFirstPage = page === 0;
+    const max = Math.min(this.items.length, (page ? page + 2 : 3) * area);
 
-    let slice;
-
-    if (isFirstPage) {
-      slice = this.items.slice(0, area * 3);
-    } else {
-      // always provide content before and after current page for a smoother experience
-      slice = this.items.slice((page - 1) * area, (page + 3) * area);
+    for (let i = Math.max(0, page - 1) * area; i < max; i++) {
+      const top = Math.floor(i / cols) * cardh;
+      const left = (i % cols) * cardw;
+      yield [i, top, left, cardw, cardh];
     }
-
-    const cardw = width / this._cols;
-    const cardh = height / this._rows;
-
-    this._slice = slice.map((item, index) => [
-      item,
-      (Math.max(0, page - 1) * height) + (Math.floor(index / this._cols) * cardh),
-      (index % this._cols) * cardw,
-      cardw,
-      cardh
-    ]);
   }
 
   render() {
-    if (this.items.length == 0) {
-      return;
+    const len = this.items.length;
+    const noItems = len === 0;
+
+    if (noItems) {
+      return html`<slot></slot>`;
     }
 
-    const {height} = this.getBoundingClientRect();
-    const area = this._cols * this._rows;
-
-    const spacer = {
-      height: `${Math.ceil(this.items.length / area) * height}px`
-    };
+    const {area} = this._dimensions();
+    const fullHeight = (len / area) * this._height;
 
     return html`
-      <div id="spacer" style=${styleMap(spacer)}>
-      ${repeat(this._slice, ([item]) => item.id,
-        ([item, top, left, width, height]) => {
-          const card = {
-            top: `${top}px`,
-            left: `${left}px`,
-            width: `${width}px`,
-            height: `${height}px`
-          };
+      <div id="spacer" style=${styleMap({height: `${fullHeight}px`})}>
+        ${repeat(this.slice(), ([index]) => this.items[index].id,
+          ([index, top, left, width, height]) => {
+            const card = {
+              top:    `${top}px`,
+              left:   `${left}px`,
+              width:  `${width}px`,
+              height: `${height}px`
+            };
 
-          return html`
-            <mdb-card image=${item.image}
-                      style=${styleMap(card)}></mdb-card>
-          `;
-        }
-      )}
+            return html`
+              <mdb-card image=${this.items[index].image}
+                        style=${styleMap(card)}></mdb-card>
+            `;
+          }
+        )}
       </div>
     `;
   }
