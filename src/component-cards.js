@@ -25,18 +25,10 @@ class Cards extends LitElement {
   `;
   
   static properties = {
-    items: {
-      attribute: false,
-    },
-    _width: {
-      state: true
-    },
-    _height: {
-      state: true
-    },
-    _page: {
-      state: true
-    },
+    items:   {attribute: false},
+    _width:  {state: true},
+    _height: {state: true},
+    _page:   {state: true},
   };
 
   constructor() {
@@ -47,13 +39,8 @@ class Cards extends LitElement {
   connectedCallback() {
     super.connectedCallback();
 
-    const resize$ = fromEvent(window, 'resize').pipe(
-      startWith(1)
-    );
-
-    const scroll$ = fromEvent(this, 'scrollend').pipe(
-      startWith(1)
-    );
+    const resize$ = fromEvent(window, 'resize').pipe(startWith(1));
+    const scroll$ = fromEvent(this, 'scrollend').pipe(startWith(1));
 
     const combined$ = combineLatest([resize$, scroll$]).pipe(
       debounceTime(50),
@@ -90,10 +77,10 @@ class Cards extends LitElement {
   *slice() {
     const {cols, area, cardw, cardh} = this._dimensions();
     const page = this._page;
-
+    const from = Math.max(0, page - 1) * area;
     const max = Math.min(this.items.length, (page + 3) * area);
 
-    for (let i = Math.max(0, page - 1) * area; i < max; i++) {
+    for (let i = from; i < max; i++) {
       const top = Math.floor(i / cols) * cardh;
       const left = (i % cols) * cardw;
       yield [i, top, left, cardw, cardh];
