@@ -39,8 +39,37 @@ class Cards extends LitElement {
   connectedCallback() {
     super.connectedCallback();
 
-    const resize$ = fromEvent(window, 'resize').pipe(startWith(1));
-    const scroll$ = fromEvent(this, 'scrollend').pipe(startWith(1));
+    /*
+
+    Dimensions and positions are computed based on scroll
+    and resize events. However we need that information,
+    on initial render too and we cannot assume that the
+    user will trigger these events at that time.
+
+    The `startWith` trick below serves two purposes:
+
+    1. Make sure both observables emit immediately after
+       being subscribed to, so we can have initial dimensions
+       and position.
+
+    2. The `combineLatest` produces an observable that starts
+       emitting only after each combined observable has
+       emitted at least once.
+
+       Since we cannot assume that the user will trigger
+       both events we need to make sure that the two
+       combined observables have both emitted at least
+       once.
+
+    */
+
+    const resize$ = fromEvent(window, 'resize').pipe(
+      startWith('╰(°□°╰)')
+    );
+
+    const scroll$ = fromEvent(this, 'scrollend').pipe(
+      startWith('╰(°□°╰)')
+    );
 
     const combined$ = combineLatest([resize$, scroll$]).pipe(
       debounceTime(50),
@@ -64,8 +93,8 @@ class Cards extends LitElement {
   }
 
   _dimensions() {
-    const minw = 200;
-    const minh = 350;
+    const minw = 200; // TODO: this should be based on an attribute
+    const minh = 350; // TODO: this should be based on an attribute
     const cols = Math.floor(this._width / minw);
     const rows = Math.floor(this._height / minh);
     const area = cols * rows;
@@ -91,6 +120,7 @@ class Cards extends LitElement {
     const len = this.items.length;
     const noItems = len === 0;
 
+    // Assumes that a 'no results' message is provided by the parent.
     if (noItems) {
       return html`<slot></slot>`;
     }
@@ -102,16 +132,14 @@ class Cards extends LitElement {
       <div id="spacer" style=${styleMap({height: `${fullHeight}px`})}>
         ${repeat(this.slice(), ([index]) => this.items[index].id,
           ([index, top, left, width, height]) => {
-            const card = {
-              top:    `${top}px`,
-              left:   `${left}px`,
-              width:  `${width}px`,
-              height: `${height}px`
-            };
-
+            const card = this.items[index];
+            const styles = {top:    `${top}px`,
+                            left:   `${left}px`,
+                            width:  `${width}px`,
+                            height: `${height}px`};
             return html`
-              <mdb-card style=${styleMap(card)}>
-                <img src=${this.items[index].image} />
+              <mdb-card style=${styleMap(styles)}>
+                <img src=${card.image} />
               </mdb-card>
             `;
           }
