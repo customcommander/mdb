@@ -1,7 +1,7 @@
 import {LitElement, css, html} from 'lit';
 import {repeat} from 'lit/directives/repeat.js';
 import {styleMap} from 'lit/directives/style-map.js';
-import {combineLatest, debounceTime, fromEvent, map, startWith} from 'rxjs';
+import {debounceTime, fromEvent, map, startWith} from 'rxjs';
 
 import './component-card.js';
 
@@ -25,10 +25,10 @@ class Cards extends LitElement {
   `;
   
   static properties = {
-    items:   {attribute: false},
-    _width:  {state: true},
-    _height: {state: true},
-    _page:   {state: true},
+    width:  {type: Number},
+    height: {type: Number},
+    items:  {attribute: false},
+    _page:  {state: true},
   };
 
   constructor() {
@@ -39,51 +39,14 @@ class Cards extends LitElement {
   connectedCallback() {
     super.connectedCallback();
 
-    /*
-
-    Dimensions and positions are computed based on scroll
-    and resize events. However we need that information,
-    on initial render too and we cannot assume that the
-    user will trigger these events at that time.
-
-    The `startWith` trick below serves two purposes:
-
-    1. Make sure both observables emit immediately after
-       being subscribed to, so we can have initial dimensions
-       and position.
-
-    2. The `combineLatest` produces an observable that starts
-       emitting only after each combined observable has
-       emitted at least once.
-
-       Since we cannot assume that the user will trigger
-       both events we need to make sure that the two
-       combined observables have both emitted at least
-       once.
-
-    */
-
-    const resize$ = fromEvent(window, 'resize').pipe(
-      startWith('╰(°□°╰)')
-    );
-
     const scroll$ = fromEvent(this, 'scrollend').pipe(
-      startWith('╰(°□°╰)')
+      debounceTime(100),
+      map(() => this.scrollTop),
+      startWith(0)
     );
 
-    const combined$ = combineLatest([resize$, scroll$]).pipe(
-      debounceTime(50),
-      map(() => {
-        const {width, height} = this.getBoundingClientRect();
-        const pos = this.scrollTop;
-        return [width, height, pos];
-      })
-    );
-
-    this._listen = combined$.subscribe(([width, height, pos]) => {
-      this._width = width;
-      this._height = height;
-      this._page = Math.floor(pos / height);
+    this._listen = scroll$.subscribe(pos => {
+      this._page = Math.floor(pos / this.height);
     });
   }
 
@@ -95,11 +58,11 @@ class Cards extends LitElement {
   _dimensions() {
     const minw = 200; // TODO: this should be based on an attribute
     const minh = 350; // TODO: this should be based on an attribute
-    const cols = Math.floor(this._width / minw);
-    const rows = Math.floor(this._height / minh);
+    const cols = Math.floor(this.width / minw);
+    const rows = Math.floor(this.height / minh);
     const area = cols * rows;
-    const cardw = this._width / cols;
-    const cardh = this._height / rows;
+    const cardw = this.width / cols;
+    const cardh = this.height / rows;
     return {cols, rows, area, cardw, cardh};
   }
 
@@ -126,7 +89,7 @@ class Cards extends LitElement {
     }
 
     const {area} = this._dimensions();
-    const fullHeight = (len / area) * this._height;
+    const fullHeight = (len / area) * this.height;
 
     return html`
       <div id="spacer" style=${styleMap({height: `${fullHeight}px`})}>

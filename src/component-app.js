@@ -1,11 +1,10 @@
 import {LitElement, css, html} from 'lit';
-import { fromEvent, map, filter, delay } from 'rxjs';
+import { fromEvent, startWith, debounceTime, map, filter, delay } from 'rxjs';
 import {key, shortcut} from './shortcut.js';
 import engine from './engine.js~';
 import cards from '../cards.json';
 
 import './component-cards.js';
-import './component-filter-color.js';
 
 const shortcuts = {
     '?': {type: 'display.help'                               },
@@ -44,9 +43,9 @@ class App extends LitElement {
   `;
 
   static properties = {
-    items: {
-      attribute: false
-    }
+    items:   {attribute: false},
+    _width:  {state: true},
+    _height: {state: true}
   };
 
   constructor() {
@@ -60,6 +59,17 @@ class App extends LitElement {
     this.key$ = key();
     this.shortcut$ = shortcut(this.key$, Object.keys(shortcuts));
     this.e = engine(cards);
+
+    const resize$ = fromEvent(window, 'resize').pipe(
+      debounceTime(100),
+      map(() => this.getBoundingClientRect()),
+      startWith(this.getBoundingClientRect())
+    );
+
+    this.resize = resize$.subscribe(({width, height}) => {
+      this._width = width;
+      this._height = height;
+    });
 
     fromEvent(document, 'keydown').subscribe(
       this.key$
@@ -77,9 +87,14 @@ class App extends LitElement {
     this.e.start();
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.resize.unsubscribe();
+  }
+
   render() {
     return html`
-      <mdb-cards .items=${this.items}>
+      <mdb-cards .items=${this.items} width=${this._width} height=${this._height}>
         <p>no results for <mark>foo</mark></p>
       </mdb-cards>
     `;
