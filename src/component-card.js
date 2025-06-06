@@ -6,19 +6,23 @@ class Card extends LitElement {
       display: block;
     }
 
-    ::slotted(img) {
+    img {
       object-fit: contain;
       width: 100%;
       height: 100%;
     }
   `;
 
+  static properties = {
+    card: {attribute: false}
+  };
+
   constructor() {
     super();
   }
 
   render() {
-    return html`<slot></slot>`;
+    return html`<img src=${this.card.image} />`;
   }
 }
 

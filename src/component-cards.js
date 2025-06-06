@@ -101,9 +101,7 @@ class Cards extends LitElement {
                             width:  `${width}px`,
                             height: `${height}px`};
             return html`
-              <mdb-card style=${styleMap(styles)}>
-                <img src=${card.image} />
-              </mdb-card>
+              <mdb-card .card=${card} style=${styleMap(styles)}></mdb-card>
             `;
           }
         )}
