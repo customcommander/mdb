@@ -25,6 +25,7 @@ class Cards extends LitElement {
   `;
   
   static properties = {
+    view:   {type: String},
     width:  {type: Number},
     height: {type: Number},
     items:  {attribute: false},
@@ -34,6 +35,7 @@ class Cards extends LitElement {
   constructor() {
     super();
     this.items = [];
+    this.view = 'table';
   }
 
   connectedCallback() {
@@ -56,8 +58,8 @@ class Cards extends LitElement {
   }
 
   _dimensions() {
-    const minw = 200; // TODO: this should be based on an attribute
-    const minh = 350; // TODO: this should be based on an attribute
+    const minw = this.view == 'table' ? this.width : 200;
+    const minh = this.view == 'table' ? 75 : 350;
     const cols = Math.floor(this.width / minw);
     const rows = Math.floor(this.height / minh);
     const area = cols * rows;
@@ -101,7 +103,9 @@ class Cards extends LitElement {
                             width:  `${width}px`,
                             height: `${height}px`};
             return html`
-              <mdb-card .card=${card} style=${styleMap(styles)}></mdb-card>
+              <mdb-card .card=${card}
+                        view=${this.view}
+                        style=${styleMap(styles)}></mdb-card>
             `;
           }
         )}
@@ -112,4 +116,3 @@ class Cards extends LitElement {
 
 customElements.define('mdb-cards', Cards);
 
- 
