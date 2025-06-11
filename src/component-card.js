@@ -6,7 +6,6 @@ class Card extends LitElement {
     :host {
       width: 100%;
       height: 100%;
-      overflow-y: scroll;
     }
 
     :host([view="grid"]) {

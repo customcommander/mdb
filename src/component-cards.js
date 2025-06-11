@@ -35,7 +35,6 @@ class Cards extends LitElement {
   constructor() {
     super();
     this.items = [];
-    this.view = 'table';
   }
 
   connectedCallback() {
@@ -105,7 +104,8 @@ class Cards extends LitElement {
             return html`
               <mdb-card .card=${card}
                         view=${this.view}
-                        style=${styleMap(styles)}></mdb-card>
+                        style=${styleMap(styles)}>
+              </mdb-card>
             `;
           }
         )}

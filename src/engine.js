@@ -1,4 +1,4 @@
-import { emit, setup, createActor, spawnChild, sendTo, enqueueActions} from "xstate";
+import { emit, setup, createActor, spawnChild, log, enqueueActions} from "xstate";
 import search from './search.js';
 
 const sys_search = ({system}) => system.get('search');
@@ -10,20 +10,13 @@ const src = setup({
       payload: event.payload
     })),
 
-    'filter-color': enqueueActions(({enqueue}) => {
-      enqueue.assign(({event, context}) => {
-        const {color, exclude = false} = event;
-        const key = exclude ? 'exclude_colors' : 'include_colors';
-        const val = context[key];
-        return {
-          [key]: (
-            val.includes(color)
-              ? val.filter(c => c != color)
-              : val.concat(color)
-          )
-        };
-      });
+    'emit-state-change': emit(({event}) => ({
+      type: 'state.change',
+      state: event.type,
+      value: event.value
+    })),
 
+    'filter-color': enqueueActions(({enqueue}) => {
       enqueue.sendTo(sys_search, ({context}) => ({
         type: 'search',
         query: context
@@ -57,8 +50,11 @@ const machine = src.createMachine({
     },
     'search.results': {
       actions: 'emit-results'
-    }
-  }
+    },
+    'display': {
+      actions: 'emit-state-change'
+    },
+  },
 });
 
 export default function (cards) {

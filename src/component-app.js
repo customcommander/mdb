@@ -1,7 +1,7 @@
 import {LitElement, css, html} from 'lit';
 import { fromEvent, startWith, debounceTime, map, filter, delay } from 'rxjs';
 import {key, shortcut} from './shortcut.js';
-import engine from './engine.js~';
+import engine from './engine.js';
 import cards from '../cards.json';
 
 import './component-cards.js';
@@ -20,6 +20,8 @@ const shortcuts = {
   '-+r': {type: 'filter.color', color: 'red'  , exclude: true},
   '-+u': {type: 'filter.color', color: 'blue' , exclude: true},
   '-+w': {type: 'filter.color', color: 'white', exclude: true},
+  'd+g': {type: 'display'     , value: 'grid'                },
+  'd+t': {type: 'display'     , value: 'table'               }
 };
 
 
@@ -41,14 +43,16 @@ class App extends LitElement {
   `;
 
   static properties = {
-    items:   {attribute: false},
-    _width:  {state: true},
-    _height: {state: true}
+    items:    {attribute: false},
+    _width:   {state: true},
+    _height:  {state: true},
+    _display: {state: true}
   };
 
   constructor() {
     super();
     this.items = [];
+    this._display = 'table';
   }
 
   connectedCallback() {
@@ -82,6 +86,11 @@ class App extends LitElement {
       this.items = payload;
     });
 
+    this.e.on('state.change', ({state, value}) => {
+      console.log(`${state}=${value}`);
+      this[`_${state}`] = value;
+    });
+
     this.e.start();
   }
 
@@ -92,7 +101,11 @@ class App extends LitElement {
 
   render() {
     return html`
-      <mdb-cards .items=${this.items} width=${this._width} height=${this._height}>
+      <mdb-cards
+        .items=${this.items}
+        width=${this._width}
+        height=${this._height}
+        view=${this._display}>
         <p>no results for <mark>foo</mark></p>
       </mdb-cards>
     `;
