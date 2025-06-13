@@ -44,8 +44,6 @@ class App extends LitElement {
 
   static properties = {
     items:    {attribute: false},
-    _width:   {state: true},
-    _height:  {state: true},
     _display: {state: true}
   };
 
@@ -62,16 +60,6 @@ class App extends LitElement {
     this.shortcut$ = shortcut(this.key$, Object.keys(shortcuts));
     this.e = engine(cards);
 
-    const resize$ = fromEvent(window, 'resize').pipe(
-      debounceTime(100),
-      map(() => this.getBoundingClientRect()),
-      startWith(this.getBoundingClientRect())
-    );
-
-    this.resize = resize$.subscribe(({width, height}) => {
-      this._width = width;
-      this._height = height;
-    });
 
     fromEvent(document, 'keydown').subscribe(
       this.key$
@@ -96,16 +84,11 @@ class App extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.resize.unsubscribe();
   }
 
   render() {
     return html`
-      <mdb-cards
-        .items=${this.items}
-        width=${this._width}
-        height=${this._height}
-        view=${this._display}>
+      <mdb-cards .items=${this.items} view=${this._display}>
         <p>no results for <mark>foo</mark></p>
       </mdb-cards>
     `;
