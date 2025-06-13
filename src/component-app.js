@@ -5,6 +5,7 @@ import engine from './engine.js';
 import cards from '../cards.json';
 
 import './component-cards.js';
+import './component-omnibar.js';
 
 const shortcuts = {
     '?': {type: 'display.help'                               },
@@ -29,16 +30,21 @@ class App extends LitElement {
 
   static styles = css`
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
       margin: 0;
       padding: 0;
       width: 100vw;
       height: 100vh;
     }
 
+    mdb-omnibar {
+      width: 100vw;
+      height: 80px;
+    }
+
     mdb-cards {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
     }
   `;
 
@@ -88,6 +94,9 @@ class App extends LitElement {
 
   render() {
     return html`
+      <mdb-omnibar>
+        <p>search query here at some point...</p>
+      </mdb-omnibar>
       <mdb-cards .items=${this.items} view=${this._display}>
         <p>no results for <mark>foo</mark></p>
       </mdb-cards>
