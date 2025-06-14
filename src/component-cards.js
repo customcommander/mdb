@@ -88,8 +88,8 @@ class Cards extends LitElement {
   _dimensions() {
     const minw = this.view == 'table' ? this._width : 200;
     const minh = this.view == 'table' ? 75 : 350;
-    const cols = Math.floor(this._width / minw);
-    const rows = Math.floor(this._height / minh);
+    const cols = this.view == 'table' ? 1 : 3;
+    const rows = Math.ceil(this._height / minh);
     const area = cols * rows;
     const cardw = this._width / cols;
     const cardh = this._height / rows;
