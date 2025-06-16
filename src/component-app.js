@@ -41,6 +41,7 @@ class App extends LitElement {
     mdb-omnibar {
       width: 100vw;
       height: 80px;
+      box-shadow: 0px 3px 4px #999999;
     }
 
     mdb-cards {
