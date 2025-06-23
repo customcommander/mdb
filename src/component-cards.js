@@ -15,12 +15,20 @@ class Cards extends LitElement {
       overflow-y: auto;
     }
 
+    #loader {
+      position: sticky;
+      top: 50%;
+      z-index: 10;
+    }
+
     #spacer {
       position: relative;
     }
 
     mdb-card {
       position: absolute;
+      background-color: white;
+      z-index: 100;
     }
   `;
   
@@ -122,6 +130,7 @@ class Cards extends LitElement {
     const fullHeight = (len / area) * this._height;
 
     return html`
+      <div id="loader">Loading...</div>
       <div id="spacer" style=${styleMap({height: `${fullHeight}px`})}>
         ${repeat(this.slice(), ([index]) => this.items[index].id,
           ([index, top, left, width, height]) => {
