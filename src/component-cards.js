@@ -16,9 +16,12 @@ class Cards extends LitElement {
     }
 
     #loader {
-      position: sticky;
+      position: fixed;
+      border: 1px solid gray;
       top: 50%;
+      width: 100%;
       z-index: 10;
+      text-align: center;
     }
 
     #spacer {
