@@ -42,7 +42,8 @@ class ManaCost extends LitElement {
     super();
   }
 
-  _cost(mana, num) {
+  _cost(mana) {
+    const num = this[mana];
     if (num == null) return nothing;
     if (mana == 'colorless') return html`<li>${num}</li>`;
     return html`<li>${symMap[mana].repeat(num)}</li>`;
@@ -51,12 +52,12 @@ class ManaCost extends LitElement {
   render() {
     return html`
       <ol>
-        ${this._cost('colorless', this.colorless)}
-        ${this._cost('black'    , this.black    )}
-        ${this._cost('blue'     , this.blue     )}
-        ${this._cost('green'    , this.green    )}
-        ${this._cost('red'      , this.red      )}
-        ${this._cost('white'    , this.white    )}
+        ${this._cost('colorless')}
+        ${this._cost('black'    )}
+        ${this._cost('blue'     )}
+        ${this._cost('green'    )}
+        ${this._cost('red'      )}
+        ${this._cost('white'    )}
       </ol>
     `;
   }
